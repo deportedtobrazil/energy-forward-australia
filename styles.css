@@ -70,7 +70,7 @@ input {
 }
 
 input:focus-visible {
-  outline: 3px solid #8bc5ff;
+  outline: 3px solid #1b4f91;
   outline-offset: 1px;
 }
 

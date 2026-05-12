@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Energy Forward Australia | Donations</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="petition-page">
+      <section class="petition-card" aria-labelledby="donation-heading">
+        <h1 id="donation-heading">Support Energy Forward Australia</h1>
+        <p>
+          Choose a donation amount to help us keep building support for clean,
+          affordable, and reliable energy across Australia.
+        </p>
+
+        <form class="petition-form donation-form" id="donation-form">
+          <fieldset class="donation-options">
+            <legend>Select an amount</legend>
+
+            <label class="donation-option" for="donation-10">
+              <input id="donation-10" name="donation-amount" type="radio" value="10" checked />
+              <span>$10</span>
+            </label>
+            <label class="donation-option" for="donation-20">
+              <input id="donation-20" name="donation-amount" type="radio" value="20" />
+              <span>$20</span>
+            </label>
+            <label class="donation-option" for="donation-50">
+              <input id="donation-50" name="donation-amount" type="radio" value="50" />
+              <span>$50</span>
+            </label>
+            <label class="donation-option" for="donation-100">
+              <input id="donation-100" name="donation-amount" type="radio" value="100" />
+              <span>$100</span>
+            </label>
+            <label class="donation-option" for="donation-200">
+              <input id="donation-200" name="donation-amount" type="radio" value="200" />
+              <span>$200</span>
+            </label>
+            <label class="donation-option" for="donation-500">
+              <input id="donation-500" name="donation-amount" type="radio" value="500" />
+              <span>$500</span>
+            </label>
+          </fieldset>
+
+          <button id="pay-button" type="submit" class="status-button">Pay now</button>
+        </form>
+
+        <div class="page-actions">
+          <a class="return-link" href="index.html">Back to the petition</a>
+        </div>
+      </section>
+    </main>
+    <script>
+      const donationForm = document.getElementById("donation-form");
+      const payButton = document.getElementById("pay-button");
+
+      donationForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        payButton.disabled = true;
+        payButton.textContent = "loading...";
+
+        window.setTimeout(() => {
+          payButton.textContent =
+            "sorry our payment system is down right now, but thank you for your support.";
+        }, 5000);
+      });
+    </script>
+  </body>
+</html>

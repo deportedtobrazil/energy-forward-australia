@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Energy Forward Australia | Thank You</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="petition-page">
+      <section class="petition-card" aria-labelledby="thanks-heading">
+        <h1 id="thanks-heading">Submitted — your contribution counts!</h1>
+        <p>
+          Thank you for signing the Energy Forward Australia petition. Your voice
+          helps push for affordable, reliable, and sustainable energy for every
+          community.
+        </p>
+        <p id="contribution-count"></p>
+        <p id="submission-status"></p>
+        <a class="return-link" href="index.html">Back to the petition</a>
+      </section>
+    </main>
+    <script>
+      const submissionCount = Number(localStorage.getItem("efaPetitionSubmissions") || "0");
+      const contributionCountElement = document.getElementById("contribution-count");
+      const submissionStatusElement = document.getElementById("submission-status");
+      const submissionFailedKey = "efaSubmissionFailed";
+
+      if (submissionCount > 1) {
+        contributionCountElement.textContent = `Contributions counted from this browser: ${submissionCount}`;
+      } else if (submissionCount === 1) {
+        contributionCountElement.textContent = "Contribution counted from this browser: 1";
+      } else {
+        contributionCountElement.textContent = "Thanks for supporting clean energy in Australia.";
+      }
+
+      if (sessionStorage.getItem(submissionFailedKey) === "1") {
+        submissionStatusElement.textContent =
+          "We couldn't confirm delivery to our server, but your support still matters.";
+        sessionStorage.removeItem(submissionFailedKey);
+      }
+    </script>
+  </body>
+</html>

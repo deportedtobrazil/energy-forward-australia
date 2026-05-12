@@ -59,9 +59,50 @@ body::after {
   background: var(--card);
   border: 1px solid rgba(255, 255, 255, 0.48);
   border-radius: 24px;
-  padding: 2rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
   box-shadow: 0 20px 60px rgba(4, 18, 32, 0.28);
   backdrop-filter: blur(14px);
+}
+
+.page-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-tab {
+  flex: 1 1 10rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(12, 28, 44, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.page-tab:hover,
+.page-tab:focus-visible {
+  border-color: rgba(31, 122, 47, 0.4);
+  color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.page-tab[aria-current="page"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
 }
 
 h1 {
@@ -149,16 +190,25 @@ button:disabled {
 }
 
 .return-link {
-  display: inline-block;
+  flex: 1 1 12rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
   color: var(--primary);
   font-weight: 700;
   text-decoration: none;
+  text-align: center;
 }
 
 .return-link:hover,
 .return-link:focus-visible {
   color: var(--primary-hover);
-  text-decoration: underline;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .donation-form {
@@ -240,4 +290,40 @@ button:disabled {
   background: rgba(255, 171, 64, 0.18);
   color: #8a4500;
   font-weight: 700;
+}
+
+.mission-points {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.mission-points li + li {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .petition-page {
+    padding: 1rem 0.75rem;
+    align-items: start;
+  }
+
+  .petition-card {
+    border-radius: 20px;
+  }
+
+  .page-tabs,
+  .page-actions {
+    gap: 0.6rem;
+  }
+
+  .page-tab,
+  .return-link {
+    flex-basis: 100%;
+  }
+
+  .donation-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

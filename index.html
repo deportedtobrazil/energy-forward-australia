@@ -16,7 +16,7 @@
           community.
         </p>
 
-        <form class="petition-form" id="petition-form" action="thank-you.html" method="get">
+        <form class="petition-form" id="petition-form" action="/sign-petition" method="post">
           <p id="petition-form-help" class="form-help">
             All fields are required to sign the petition.
           </p>
@@ -53,13 +53,12 @@
       const submissionCountKey = "efaPetitionSubmissions";
 
       petitionForm.addEventListener("submit", (event) => {
-        if (!window.localStorage) {
-          return;
-        }
-
-        const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
-        localStorage.setItem(submissionCountKey, String(previousCount + 1));
         event.preventDefault();
+
+        if (window.localStorage) {
+          const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
+          localStorage.setItem(submissionCountKey, String(previousCount + 1));
+        }
         window.location.href = "thank-you.html";
       });
     </script>

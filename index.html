@@ -67,12 +67,14 @@
         }
 
         fetch(petitionForm.action, {
-          method: petitionForm.method.toLowerCase(),
+          method: "POST",
           body: formData,
           keepalive: true,
           credentials: "same-origin",
         })
-          .catch(() => null)
+          .catch((error) => {
+            console.error("Petition submission request failed:", error);
+          })
           .finally(() => {
             window.location.href = "thank-you.html";
           });

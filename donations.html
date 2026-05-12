@@ -45,7 +45,8 @@
             </label>
           </fieldset>
 
-          <button id="pay-button" type="submit" class="status-button">Pay now</button>
+          <button id="pay-button" type="submit" class="status-button">Pay Now</button>
+          <p id="payment-status" class="status-notice" role="alert" aria-live="assertive"></p>
         </form>
 
         <div class="page-actions">
@@ -56,15 +57,21 @@
     <script>
       const donationForm = document.getElementById("donation-form");
       const payButton = document.getElementById("pay-button");
+      const paymentStatus = document.getElementById("payment-status");
 
       donationForm.addEventListener("submit", (event) => {
         event.preventDefault();
         payButton.disabled = true;
-        payButton.textContent = "loading...";
+        payButton.textContent = "Loading...";
+        paymentStatus.textContent = "";
+        paymentStatus.className = "status-notice";
 
         window.setTimeout(() => {
-          payButton.textContent =
-            "sorry our payment system is down right now, but thank you for your support.";
+          payButton.disabled = false;
+          payButton.textContent = "Pay Now";
+          paymentStatus.className = "status-notice error-notice";
+          paymentStatus.textContent =
+            "We apologise, but our payment system is currently unavailable. Please try again later.";
         }, 5000);
       });
     </script>

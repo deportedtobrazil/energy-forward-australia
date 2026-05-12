@@ -4,9 +4,9 @@
   --card: rgba(250, 252, 255, 0.82);
   --text: #0c1c2c;
   --muted: #35506a;
-  --primary: #135a7a;
-  --primary-hover: #0f4a64;
-  --outline: #d9e7f5;
+  --primary: #1f7a2f;
+  --primary-hover: #175c23;
+  --outline: #d7ead8;
 }
 
 * {
@@ -102,7 +102,7 @@ input {
 }
 
 input:focus-visible {
-  outline: 3px solid #1b4f91;
+  outline: 3px solid #2f7d32;
   outline-offset: 1px;
 }
 
@@ -199,7 +199,7 @@ button:disabled {
   place-items: center;
   min-height: 4rem;
   padding: 0.75rem;
-  border: 1px solid rgba(19, 90, 122, 0.2);
+  border: 1px solid rgba(31, 122, 47, 0.2);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.8);
   color: var(--text);
@@ -213,12 +213,12 @@ button:disabled {
 
 .donation-option input:checked + span {
   border-color: var(--primary);
-  background: rgba(19, 90, 122, 0.14);
+  background: rgba(31, 122, 47, 0.14);
   transform: translateY(-2px);
 }
 
 .donation-option input:focus-visible + span {
-  outline: 3px solid #1b4f91;
+  outline: 3px solid #2f7d32;
   outline-offset: 2px;
 }
 
@@ -226,4 +226,18 @@ button:disabled {
   margin-top: 1.25rem;
   min-height: 4rem;
   white-space: normal;
+}
+
+.status-notice {
+  min-height: 1.5rem;
+  margin: 0;
+}
+
+.error-notice {
+  padding: 0.9rem 1rem;
+  border: 1px solid #f2b26b;
+  border-radius: 12px;
+  background: rgba(255, 171, 64, 0.18);
+  color: #8a4500;
+  font-weight: 700;
 }

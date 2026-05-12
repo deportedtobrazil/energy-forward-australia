@@ -16,7 +16,12 @@
           community.
         </p>
 
-        <form class="petition-form" action="thank-you.html" method="get">
+        <form
+          class="petition-form"
+          action="thank-you.html"
+          method="post"
+          onsubmit="window.location.href='thank-you.html'; return false;"
+        >
           <p id="petition-form-help" class="form-help">
             All fields are required to sign the petition.
           </p>

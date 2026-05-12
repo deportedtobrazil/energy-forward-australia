@@ -16,12 +16,15 @@
           community.
         </p>
         <p id="contribution-count"></p>
+        <p id="submission-status"></p>
         <a class="return-link" href="index.html">Back to the petition</a>
       </section>
     </main>
     <script>
       const submissionCount = Number(localStorage.getItem("efaPetitionSubmissions") || "0");
       const contributionCountElement = document.getElementById("contribution-count");
+      const submissionStatusElement = document.getElementById("submission-status");
+      const submissionFailedKey = "efaSubmissionFailed";
 
       if (submissionCount > 1) {
         contributionCountElement.textContent = `Contributions counted from this browser: ${submissionCount}`;
@@ -29,6 +32,12 @@
         contributionCountElement.textContent = "Contribution counted from this browser: 1";
       } else {
         contributionCountElement.textContent = "Thanks for supporting clean energy in Australia.";
+      }
+
+      if (sessionStorage.getItem(submissionFailedKey) === "1") {
+        submissionStatusElement.textContent =
+          "We couldn't confirm delivery to our server, but your support still matters.";
+        sessionStorage.removeItem(submissionFailedKey);
       }
     </script>
   </body>

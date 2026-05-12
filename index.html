@@ -51,6 +51,7 @@
     <script>
       const petitionForm = document.getElementById("petition-form");
       const submissionCountKey = "efaPetitionSubmissions";
+      const submissionFailedKey = "efaSubmissionFailed";
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -62,10 +63,11 @@
         }
 
         if (!window.fetch) {
-          window.location.href = "thank-you.html";
+          petitionForm.submit();
           return;
         }
 
+        sessionStorage.removeItem(submissionFailedKey);
         fetch(petitionForm.action, {
           method: "POST",
           body: formData,
@@ -74,6 +76,7 @@
         })
           .catch((error) => {
             console.error("Petition submission request failed:", error);
+            sessionStorage.setItem(submissionFailedKey, "1");
           })
           .finally(() => {
             window.location.href = "thank-you.html";

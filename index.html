@@ -67,9 +67,10 @@
         }
 
         fetch(petitionForm.action, {
-          method: petitionForm.method,
+          method: petitionForm.method.toLowerCase(),
           body: formData,
           keepalive: true,
+          credentials: "same-origin",
         })
           .catch(() => null)
           .finally(() => {

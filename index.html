@@ -54,12 +54,27 @@
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
+        const formData = new FormData(petitionForm);
 
         if (window.localStorage) {
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
           localStorage.setItem(submissionCountKey, String(previousCount + 1));
         }
-        window.location.href = "thank-you.html";
+
+        if (!window.fetch) {
+          window.location.href = "thank-you.html";
+          return;
+        }
+
+        fetch(petitionForm.action, {
+          method: petitionForm.method,
+          body: formData,
+          keepalive: true,
+        })
+          .catch(() => null)
+          .finally(() => {
+            window.location.href = "thank-you.html";
+          });
       });
     </script>
   </body>

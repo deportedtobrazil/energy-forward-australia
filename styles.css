@@ -52,6 +52,11 @@ p {
   gap: 0.75rem;
 }
 
+.form-help {
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
 label {
   font-weight: 700;
   color: var(--text);

@@ -23,8 +23,10 @@
       const submissionCount = Number(localStorage.getItem("efaPetitionSubmissions") || "0");
       const contributionCountElement = document.getElementById("contribution-count");
 
-      if (submissionCount > 0) {
+      if (submissionCount > 1) {
         contributionCountElement.textContent = `Contributions counted from this browser: ${submissionCount}`;
+      } else if (submissionCount === 1) {
+        contributionCountElement.textContent = "Contribution counted from this browser: 1";
       } else {
         contributionCountElement.textContent = "Your contribution has been counted.";
       }

@@ -15,8 +15,19 @@
           helps push for affordable, reliable, and sustainable energy for every
           community.
         </p>
+        <p id="contribution-count"></p>
         <a class="return-link" href="index.html">Back to the petition</a>
       </section>
     </main>
+    <script>
+      const submissionCount = Number(localStorage.getItem("efaPetitionSubmissions") || "0");
+      const contributionCountElement = document.getElementById("contribution-count");
+
+      if (submissionCount > 0) {
+        contributionCountElement.textContent = `Contributions counted from this browser: ${submissionCount}`;
+      } else {
+        contributionCountElement.textContent = "Your contribution has been counted.";
+      }
+    </script>
   </body>
 </html>

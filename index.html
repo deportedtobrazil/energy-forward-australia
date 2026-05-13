@@ -51,6 +51,11 @@
         <p class="petition-goal">
           Goal: 50,000 signatures in support of clean energy by 2035.
         </p>
+        <section aria-labelledby="signers-heading">
+          <h2 id="signers-heading">Recent signers</h2>
+          <p id="signers-empty">No signatures yet on this browser.</p>
+          <ul id="signers-list" aria-live="polite"></ul>
+        </section>
         <div class="page-actions">
           <a class="return-link" href="our-mission.html">Learn about our mission</a>
           <a class="return-link" href="donations.html">Support with a donation</a>
@@ -60,15 +65,61 @@
     <script>
       const petitionForm = document.getElementById("petition-form");
       const submissionCountKey = "efaPetitionSubmissions";
+      const signerNamesKey = "efaPetitionSignerNames";
       const submissionFailedKey = "efaSubmissionFailed";
+      const signersList = document.getElementById("signers-list");
+      const signersEmpty = document.getElementById("signers-empty");
+
+      const getSignerNames = () => {
+        if (!window.localStorage) {
+          return [];
+        }
+
+        try {
+          const names = JSON.parse(localStorage.getItem(signerNamesKey) || "[]");
+          return Array.isArray(names) ? names : [];
+        } catch (error) {
+          console.error("Could not parse stored signer names:", error);
+          return [];
+        }
+      };
+
+      const renderSignerNames = () => {
+        const names = getSignerNames();
+        signersList.textContent = "";
+
+        if (names.length === 0) {
+          signersEmpty.hidden = false;
+          return;
+        }
+
+        signersEmpty.hidden = true;
+        names
+          .slice()
+          .reverse()
+          .forEach((name) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = name;
+            signersList.appendChild(listItem);
+          });
+      };
+
+      renderSignerNames();
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(petitionForm);
+        const signerName = String(formData.get("full-name") || "").trim();
 
         if (window.localStorage) {
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
           localStorage.setItem(submissionCountKey, String(previousCount + 1));
+
+          if (signerName) {
+            const signerNames = getSignerNames();
+            signerNames.push(signerName);
+            localStorage.setItem(signerNamesKey, JSON.stringify(signerNames.slice(-100)));
+          }
         }
 
         if (!window.fetch) {

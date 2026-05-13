@@ -121,7 +121,9 @@
       const signerNamesKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
       const adminPasswordHash =
-        "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+        "de835a7e7b0d6f537efedaa1619e5ad377538be09cfbe6d7bd7e6dcb9ca85908";
+      const adminPasswordSalt = "energy-forward-australia-admin";
+      const adminPasswordIterations = 120000;
 
       const getSignerNames = () => {
         if (!window.localStorage) {
@@ -157,12 +159,29 @@
       };
 
       const hashPassword = async (value) => {
-        if (!window.crypto || !window.crypto.subtle || !window.TextEncoder) {
+        if (!window.crypto || !window.crypto.subtle) {
           throw new Error("Secure password hashing is not available in this browser.");
         }
-        const encoded = new TextEncoder().encode(value);
-        const digest = await window.crypto.subtle.digest("SHA-256", encoded);
-        return Array.from(new Uint8Array(digest))
+        const encodedPassword = new TextEncoder().encode(value);
+        const encodedSalt = new TextEncoder().encode(adminPasswordSalt);
+        const importedPassword = await window.crypto.subtle.importKey(
+          "raw",
+          encodedPassword,
+          "PBKDF2",
+          false,
+          ["deriveBits"]
+        );
+        const derivedBits = await window.crypto.subtle.deriveBits(
+          {
+            name: "PBKDF2",
+            hash: "SHA-256",
+            salt: encodedSalt,
+            iterations: adminPasswordIterations,
+          },
+          importedPassword,
+          256
+        );
+        return Array.from(new Uint8Array(derivedBits))
           .map((byte) => byte.toString(16).padStart(2, "0"))
           .join("");
       };

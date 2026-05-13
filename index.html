@@ -111,7 +111,9 @@
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(petitionForm);
-        const signerName = String(formData.get("full-name") || "").trim();
+        const signerName = String(formData.get("full-name") || "")
+          .replace(/\s+/g, " ")
+          .trim();
 
         if (window.localStorage) {
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
@@ -122,7 +124,7 @@
             signerName.length <= maxSignerNameLength &&
             signerNamePattern.test(signerName)
           ) {
-            const signerNames = getSignerNames();
+            const signerNames = [...getSignerNames()];
             if (signerNames.length >= maxStoredSigners) {
               signerNames.shift();
             }

@@ -88,7 +88,10 @@
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(petitionForm);
-        saveSignerName(String(formData.get("full-name") || ""));
+        const fullNameValue = formData.get("full-name");
+        if (typeof fullNameValue === "string") {
+          saveSignerName(fullNameValue);
+        }
 
         if (window.localStorage) {
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");

@@ -219,7 +219,7 @@
         new URL("./sign-petition/signatures", window.location.href).toString(),
         new URL("/sign-petition/signatures", window.location.origin).toString(),
       ];
-      const legacySignerNamesKey = "efaPetitionSignerNames";
+      const petitionSignerNamesKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
       const adminPasswordHash =
         "c1ea006c2833e5bd21a43eb93df8410bcd9737b11fd1d8ca17d1d52bdba16330";
@@ -260,7 +260,7 @@
           if (!window.localStorage) {
             return [];
           }
-          const fallbackData = localStorage.getItem(legacySignerNamesKey);
+          const fallbackData = localStorage.getItem(petitionSignerNamesKey);
           if (!fallbackData) {
             return [];
           }
@@ -273,7 +273,7 @@
           }
         };
 
-        let lastError = new Error("Could not load signatures from any available source.");
+        let lastError = null;
         for (const endpoint of signaturesEndpointCandidates) {
           try {
             const response = await fetch(endpoint, {
@@ -297,7 +297,7 @@
             }
 
             const payload = await response.json();
-            // Support payload formats: [] | { signatures: [] } | { items: [] } | { data: [] }.
+            // Support payload formats: array, or object with signatures/items/data property.
             const rawItems = Array.isArray(payload)
               ? payload
               : payload?.signatures || payload?.items || payload?.data;
@@ -319,7 +319,7 @@
           };
         }
 
-        throw lastError;
+        throw lastError || new Error("Could not load signatures from any available source.");
       };
 
       const renderSignerNames = async () => {

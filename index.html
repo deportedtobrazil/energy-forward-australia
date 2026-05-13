@@ -53,7 +53,7 @@
         </p>
         <section aria-labelledby="signers-heading">
           <h2 id="signers-heading">Recent signers</h2>
-          <p id="signers-empty">No signatures yet on this browser.</p>
+          <p id="signers-empty" hidden>No signatures yet on this browser.</p>
           <ul id="signers-list" aria-live="polite"></ul>
         </section>
         <div class="page-actions">
@@ -68,6 +68,7 @@
       const signerNamesKey = "efaPetitionSignerNames";
       const submissionFailedKey = "efaSubmissionFailed";
       const maxStoredSigners = 100;
+      const maxSignerNameLength = 120;
       const signersList = document.getElementById("signers-list");
       const signersEmpty = document.getElementById("signers-empty");
 
@@ -116,13 +117,13 @@
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
           localStorage.setItem(submissionCountKey, String(previousCount + 1));
 
-          if (signerName) {
+          if (signerName && signerName.length <= maxSignerNameLength) {
             const signerNames = getSignerNames();
+            if (signerNames.length >= maxStoredSigners) {
+              signerNames.shift();
+            }
             signerNames.push(signerName);
-            localStorage.setItem(
-              signerNamesKey,
-              JSON.stringify(signerNames.slice(-maxStoredSigners))
-            );
+            localStorage.setItem(signerNamesKey, JSON.stringify(signerNames));
             renderSignerNames();
           }
         }

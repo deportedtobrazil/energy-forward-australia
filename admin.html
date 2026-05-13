@@ -256,7 +256,11 @@
           }
           return uniqueNames.length > 0 ? uniqueNames : localNames;
         } catch (error) {
-          console.warn("Falling back to locally stored signatures:", error);
+          if (localNames.length > 0) {
+            console.warn(`API signature load failed; using ${localNames.length} locally stored signatures.`, error);
+          } else {
+            console.warn("API signature load failed and no local signatures were found.", error);
+          }
           return localNames;
         }
       };

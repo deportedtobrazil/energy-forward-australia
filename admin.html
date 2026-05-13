@@ -214,6 +214,7 @@
       const signersMeta = document.getElementById("signers-meta");
       const signersLoading = document.getElementById("signers-loading");
       const refreshSignersButton = document.getElementById("refresh-signers");
+      // Try relative path first (subdirectory deployments), then absolute root path.
       const signaturesEndpointCandidates = [
         new URL("./sign-petition/signatures", window.location.href).toString(),
         new URL("/sign-petition/signatures", window.location.origin).toString(),
@@ -272,7 +273,7 @@
           }
         };
 
-        let lastError = new Error("No signature endpoint was available.");
+        let lastError = new Error("Could not load signatures from any available source.");
         for (const endpoint of signaturesEndpointCandidates) {
           try {
             const response = await fetch(endpoint, {
@@ -296,6 +297,7 @@
             }
 
             const payload = await response.json();
+            // Support payload formats: [] | { signatures: [] } | { items: [] } | { data: [] }.
             const rawItems = Array.isArray(payload)
               ? payload
               : payload?.signatures || payload?.items || payload?.data;
@@ -355,7 +357,7 @@
         signersMeta.textContent =
           source === "api"
             ? `${names.length} signatures loaded.`
-            : `${names.length} signatures loaded from local backup data.`;
+            : `${names.length} signatures loaded from local cache (may not be current).`;
         signersEmpty.hidden = true;
         const fragment = document.createDocumentFragment();
         for (let index = names.length - 1; index >= 0; index -= 1) {

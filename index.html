@@ -60,11 +60,33 @@
     <script>
       const petitionForm = document.getElementById("petition-form");
       const submissionCountKey = "efaPetitionSubmissions";
+      const signerNamesKey = "efaPetitionSignerNames";
       const submissionFailedKey = "efaSubmissionFailed";
+
+      const saveSignerName = (nameValue) => {
+        if (!window.localStorage || typeof nameValue !== "string") {
+          return;
+        }
+        const name = nameValue.trim();
+        if (!name) {
+          return;
+        }
+        let names = [];
+        try {
+          const stored = localStorage.getItem(signerNamesKey);
+          const parsed = stored ? JSON.parse(stored) : [];
+          names = Array.isArray(parsed) ? parsed.filter((value) => typeof value === "string") : [];
+        } catch (error) {
+          console.error("Could not read stored signer names:", error);
+        }
+        names.push(name);
+        localStorage.setItem(signerNamesKey, JSON.stringify(names));
+      };
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(petitionForm);
+        saveSignerName(String(formData.get("full-name") || ""));
 
         if (window.localStorage) {
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");

@@ -1,0 +1,2 @@
+# Petition signatures (one name per line)
+# Add each new signer name on its own line.

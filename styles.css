@@ -38,6 +38,7 @@ body::before {
   background-size: cover;
   filter: blur(20px) saturate(0.9);
   transform: scale(1.08);
+  will-change: transform, filter;
   z-index: -2;
   animation: bg-pan 26s ease-in-out infinite alternate;
 }

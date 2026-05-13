@@ -184,7 +184,14 @@
       <section id="admin-section" aria-labelledby="admin-signers-heading" hidden>
         <div class="admin-heading-row">
           <h1 id="admin-signers-heading">Petition signatures</h1>
-          <button id="refresh-signers" type="button" class="ghost-button">Refresh</button>
+          <button
+            id="refresh-signers"
+            type="button"
+            class="ghost-button"
+            aria-label="Refresh petition signatures"
+          >
+            Refresh
+          </button>
         </div>
         <p id="signers-meta" class="muted signers-meta" hidden></p>
         <p id="signers-loading" class="muted signers-loading" role="status" hidden>Loading signatures…</p>
@@ -207,12 +214,10 @@
       const signersMeta = document.getElementById("signers-meta");
       const signersLoading = document.getElementById("signers-loading");
       const refreshSignersButton = document.getElementById("refresh-signers");
-      const signaturesEndpointCandidates = Array.from(
-        new Set([
-          new URL("./sign-petition/signatures", window.location.href).toString(),
-          new URL("/sign-petition/signatures", window.location.origin).toString(),
-        ])
-      );
+      const signaturesEndpointCandidates = [
+        new URL("./sign-petition/signatures", window.location.href).toString(),
+        new URL("/sign-petition/signatures", window.location.origin).toString(),
+      ];
       const legacySignerNamesKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
       const adminPasswordHash =
@@ -280,7 +285,7 @@
 
             if (!response.ok) {
               if (response.status === 404) {
-                lastError = new Error(`Signature endpoint not found at ${endpoint}.`);
+                lastError = new Error("Signature endpoint was not found.");
                 continue;
               }
               if (response.status >= 500) {

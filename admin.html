@@ -154,7 +154,6 @@
       const signersEmpty = document.getElementById("signers-empty");
       const signersError = document.getElementById("signers-error");
       const signaturesEndpoint = "/sign-petition/signatures";
-      const signerNamesStorageKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
       const adminPasswordHash =
         "c1ea006c2833e5bd21a43eb93df8410bcd9737b11fd1d8ca17d1d52bdba16330";
@@ -178,92 +177,46 @@
       };
 
       const getSignerNames = async () => {
-        const getLocalSignerNames = () => {
-          if (!window.localStorage) {
-            return [];
+        const response = await fetch(signaturesEndpoint, {
+          method: "GET",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("Authentication required to load signatures.");
           }
-
-          try {
-            const storedNames = localStorage.getItem(signerNamesStorageKey);
-            if (!storedNames) {
-              return [];
-            }
-
-            const parsedNames = JSON.parse(storedNames);
-            if (!Array.isArray(parsedNames)) {
-              return [];
-            }
-
-            const uniqueLocalNames = [];
-            const seenLocalNames = new Set();
-            for (const entry of parsedNames) {
-              const name = toSignerName(entry);
-              if (name && !seenLocalNames.has(name)) {
-                seenLocalNames.add(name);
-                uniqueLocalNames.push(name);
-              }
-            }
-            return uniqueLocalNames;
-          } catch (error) {
-            console.warn("Could not read local signer names:", error);
-            return [];
+          if (response.status === 403) {
+            throw new Error("You do not have permission to view signatures.");
           }
-        };
-
-        const localNames = getLocalSignerNames();
-
-        try {
-          const response = await fetch(signaturesEndpoint, {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-              Accept: "application/json",
-            },
-          });
-
-          if (!response.ok) {
-            if (response.status === 401) {
-              throw new Error("Authentication required to load signatures.");
-            }
-            if (response.status === 403) {
-              throw new Error("You do not have permission to view signatures.");
-            }
-            if (response.status === 404) {
-              throw new Error("Signature endpoint was not found.");
-            }
-            if (response.status >= 500) {
-              throw new Error("The server is unavailable right now.");
-            }
-            throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
+          if (response.status === 404) {
+            throw new Error("Signature endpoint was not found.");
           }
-
-          const payload = await response.json();
-          const rawItems = Array.isArray(payload) ? payload : payload?.signatures;
-          if (!Array.isArray(rawItems)) {
-            return localNames;
+          if (response.status >= 500) {
+            throw new Error("The server is unavailable right now.");
           }
-
-          const seenNames = new Set();
-          const uniqueNames = [];
-          for (const item of rawItems) {
-            const name = toSignerName(item);
-            if (name && !seenNames.has(name)) {
-              seenNames.add(name);
-              uniqueNames.push(name);
-            }
-          }
-          return uniqueNames.length > 0 ? uniqueNames : localNames;
-        } catch (error) {
-          if (localNames.length > 0) {
-            console.warn(
-              `API signature load failed; using ${localNames.length} locally stored signer names.`,
-              error
-            );
-          } else {
-            console.warn("API signature load failed and no local signer names were found.", error);
-          }
-          return localNames;
+          throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
         }
+
+        const payload = await response.json();
+        const rawItems = Array.isArray(payload) ? payload : payload?.signatures;
+        if (!Array.isArray(rawItems)) {
+          return [];
+        }
+
+        const seenNames = new Set();
+        const uniqueNames = [];
+        for (const item of rawItems) {
+          const name = toSignerName(item);
+          if (name && !seenNames.has(name)) {
+            seenNames.add(name);
+            uniqueNames.push(name);
+          }
+        }
+        return uniqueNames;
       };
 
       const renderSignerNames = async () => {

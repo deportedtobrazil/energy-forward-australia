@@ -369,11 +369,14 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
+  body::before,
+  .petition-card,
+  .page-tab,
+  input,
+  button,
+  .return-link,
+  .donation-option span {
+    animation: none;
+    transition: none;
   }
 }

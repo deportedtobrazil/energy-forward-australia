@@ -88,11 +88,10 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .card {
+        *,
+        *::before,
+        *::after {
           animation: none;
-        }
-
-        button {
           transition: none;
         }
       }

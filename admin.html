@@ -217,11 +217,10 @@
       const signersLoading = document.getElementById("signers-loading");
       const refreshSignersButton = document.getElementById("refresh-signers");
       // Try relative path first (subdirectory deployments), then absolute root path.
-      const signaturesEndpointCandidates = [
-        new URL("./sign-petition/signatures", window.location.href).toString(),
-        new URL("/sign-petition/signatures", window.location.origin).toString(),
+      const signaturesFileCandidates = [
+        new URL("./signatures.txt", window.location.href).toString(),
+        new URL("/signatures.txt", window.location.origin).toString(),
       ];
-      const petitionSignerNamesKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
       const adminPasswordHash =
         "c1ea006c2833e5bd21a43eb93df8410bcd9737b11fd1d8ca17d1d52bdba16330";
@@ -245,11 +244,11 @@
       };
 
       const getSignerNames = async () => {
-        const sourceItemsToNames = (items) => {
+        const sourceLinesToNames = (lines) => {
           const seenNames = new Set();
           const uniqueNames = [];
-          for (const item of items) {
-            const name = toSignerName(item);
+          for (const line of lines) {
+            const name = toSignerName(line);
             if (name && !seenNames.has(name)) {
               seenNames.add(name);
               uniqueNames.push(name);
@@ -258,76 +257,44 @@
           return uniqueNames;
         };
 
-        const getLegacySignerNames = () => {
-          if (!window.localStorage) {
-            return [];
-          }
-          const fallbackData = localStorage.getItem(petitionSignerNamesKey);
-          if (!fallbackData) {
-            return [];
-          }
-          try {
-            const parsed = JSON.parse(fallbackData);
-            return Array.isArray(parsed) ? sourceItemsToNames(parsed) : [];
-          } catch (error) {
-            console.warn("Could not parse locally stored signer names:", error);
-            return [];
-          }
-        };
-
         let lastError = null;
-        for (const endpoint of signaturesEndpointCandidates) {
+        for (const endpoint of signaturesFileCandidates) {
           try {
             const response = await fetch(endpoint, {
               method: "GET",
               credentials: "same-origin",
               headers: {
-                Accept: "application/json",
+                Accept: "text/plain",
               },
             });
 
             if (!response.ok) {
-              if (response.status === 401) {
-                throw new Error("Authentication is required to view signatures.");
-              }
-              if (response.status === 403) {
-                throw new Error("You do not have permission to view signatures.");
-              }
-              if (response.status === 404) {
-                lastError = new Error("Signature endpoint was not found.");
-                continue;
-              }
-              if (response.status >= 500) {
-                lastError = new Error("The server is unavailable right now.");
-                continue;
-              }
-              throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
-            }
+               if (response.status === 404) {
+                 lastError = new Error("Signatures text file was not found.");
+                 continue;
+               }
+               if (response.status >= 500) {
+                 lastError = new Error("The server is unavailable right now.");
+                 continue;
+               }
+               throw new Error(`Could not fetch signatures file (HTTP ${response.status}).`);
+             }
 
-            const payload = await response.json();
-            // Support payloads from direct API arrays and older wrappers ({signatures}/{items}/{data}).
-            const rawItems = Array.isArray(payload)
-              ? payload
-              : payload?.signatures || payload?.items || payload?.data;
-            const names = Array.isArray(rawItems) ? sourceItemsToNames(rawItems) : [];
-            return {
-              names,
-              source: "api",
-            };
-          } catch (error) {
-            lastError = error;
-          }
-        }
-
-        const fallbackNames = getLegacySignerNames();
-        if (fallbackNames.length > 0) {
-          return {
-            names: fallbackNames,
-            source: "local-storage",
-          };
-        }
-
-        throw lastError || new Error("Could not load signatures from any available source.");
+             const payload = await response.text();
+             const lines = payload
+               .split(/\r?\n/)
+               .map((line) => line.trim())
+               .filter((line) => line && !line.startsWith("#"));
+             const names = sourceLinesToNames(lines);
+             return {
+               names,
+               source: "text-file",
+             };
+           } catch (error) {
+             lastError = error;
+           }
+         }
+         throw lastError || new Error("Could not load signatures from signatures.txt.");
       };
 
       const renderSignerNames = async () => {
@@ -338,7 +305,7 @@
         signersList.textContent = "";
         refreshSignersButton.disabled = true;
         let names = [];
-        let source = "api";
+        let source = "text-file";
 
         try {
           const result = await getSignerNames();
@@ -363,9 +330,9 @@
 
         signersMeta.hidden = false;
         signersMeta.textContent =
-          source === "api"
-            ? `${names.length} signatures loaded.`
-            : `${names.length} signatures loaded from local cache (may not be current).`;
+          source === "text-file"
+            ? `${names.length} signatures loaded from signatures.txt.`
+            : `${names.length} signatures loaded.`;
         signersEmpty.hidden = true;
         const fragment = document.createDocumentFragment();
         for (let index = names.length - 1; index >= 0; index -= 1) {

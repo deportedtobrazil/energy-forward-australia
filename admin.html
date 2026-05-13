@@ -108,7 +108,7 @@
         <h1 id="admin-signers-heading">Petition signatures</h1>
         <p id="signers-empty" class="muted" hidden>No signatures have been submitted yet.</p>
         <p id="signers-error" class="error" role="alert" hidden>
-          Could not load signatures from the website right now. Please try again.
+          Could not load signatures from the website. Please refresh and check your internet connection.
         </p>
         <ul id="signers-list" class="signers-list" aria-live="polite"></ul>
       </section>
@@ -156,6 +156,15 @@
           });
 
           if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+              throw new Error("Access denied while loading signatures.");
+            }
+            if (response.status === 404) {
+              throw new Error("Signature endpoint was not found.");
+            }
+            if (response.status >= 500) {
+              throw new Error("The server is unavailable right now.");
+            }
             throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
           }
 

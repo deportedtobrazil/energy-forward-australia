@@ -51,11 +51,6 @@
         <p class="petition-goal">
           Goal: 50,000 signatures in support of clean energy by 2035.
         </p>
-        <section aria-labelledby="signers-heading">
-          <h2 id="signers-heading">Recent signers</h2>
-          <p id="signers-empty" hidden>No signatures yet on this browser.</p>
-          <ul id="signers-list" aria-live="polite"></ul>
-        </section>
         <div class="page-actions">
           <a class="return-link" href="our-mission.html">Learn about our mission</a>
           <a class="return-link" href="donations.html">Support with a donation</a>
@@ -70,8 +65,6 @@
       const maxStoredSigners = 100;
       const maxSignerNameLength = 120;
       const signerNamePattern = /^[\p{L}\p{M}][\p{L}\p{M}\s]*$/u;
-      const signersList = document.getElementById("signers-list");
-      const signersEmpty = document.getElementById("signers-empty");
 
       const getSignerNames = () => {
         if (!window.localStorage) {
@@ -86,27 +79,6 @@
           return [];
         }
       };
-
-      const renderSignerNames = () => {
-        const names = getSignerNames();
-        signersList.textContent = "";
-
-        if (names.length === 0) {
-          signersEmpty.hidden = false;
-          return;
-        }
-
-        signersEmpty.hidden = true;
-        const fragment = document.createDocumentFragment();
-        for (let index = names.length - 1; index >= 0; index -= 1) {
-          const listItem = document.createElement("li");
-          listItem.textContent = names[index];
-          fragment.appendChild(listItem);
-        }
-        signersList.appendChild(fragment);
-      };
-
-      renderSignerNames();
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -130,7 +102,6 @@
             }
             signerNames.push(signerName);
             localStorage.setItem(signerNamesKey, JSON.stringify(signerNames));
-            renderSignerNames();
           }
         }
 

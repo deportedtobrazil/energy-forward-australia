@@ -19,18 +19,21 @@
         font-family: "Trebuchet MS", "Segoe UI", sans-serif;
         display: grid;
         place-items: center;
-        padding: 1rem;
-        background: #eef3f7;
+        padding: 1.25rem;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.65), transparent 48%),
+          linear-gradient(180deg, #e8f3ec 0%, #eef3f7 55%, #e2ecf5 100%);
         color: #0c1c2c;
       }
 
       .card {
         width: min(100%, 38rem);
-        background: #fff;
-        border: 1px solid #d9e3ec;
-        border-radius: 16px;
-        padding: 1.25rem;
-        box-shadow: 0 12px 30px rgba(12, 28, 44, 0.12);
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.84);
+        border-radius: 22px;
+        padding: 1.35rem;
+        box-shadow: 0 20px 44px rgba(12, 28, 44, 0.16);
+        backdrop-filter: blur(10px);
         animation: card-enter 0.6s ease both;
       }
 
@@ -101,8 +104,51 @@
       }
 
       .signers-list {
+        display: grid;
+        gap: 0.45rem;
         margin: 0;
-        padding-left: 1.25rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .signers-list li {
+        border: 1px solid #d8e8dc;
+        border-radius: 12px;
+        padding: 0.65rem 0.75rem;
+        background: #f7fbf8;
+      }
+
+      .admin-heading-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .signers-meta {
+        margin: 0 0 0.85rem;
+        font-size: 0.95rem;
+      }
+
+      .signers-loading {
+        margin-top: 0;
+        margin-bottom: 0.85rem;
+      }
+
+      .ghost-button {
+        width: auto;
+        padding: 0.55rem 0.8rem;
+        border-radius: 999px;
+        background: #fff;
+        color: #175c23;
+        border: 1px solid #b8d8bf;
+      }
+
+      .ghost-button:hover,
+      .ghost-button:focus-visible {
+        background: #eff9f1;
+        box-shadow: 0 6px 14px rgba(31, 122, 47, 0.2);
       }
 
       .muted {
@@ -136,7 +182,12 @@
       </section>
 
       <section id="admin-section" aria-labelledby="admin-signers-heading" hidden>
-        <h1 id="admin-signers-heading">Petition signatures</h1>
+        <div class="admin-heading-row">
+          <h1 id="admin-signers-heading">Petition signatures</h1>
+          <button id="refresh-signers" type="button" class="ghost-button">Refresh</button>
+        </div>
+        <p id="signers-meta" class="muted signers-meta" hidden></p>
+        <p id="signers-loading" class="muted signers-loading" role="status" hidden>Loading signatures…</p>
         <p id="signers-empty" class="muted" role="status" hidden>No signatures have been submitted yet.</p>
         <p id="signers-error" class="error" role="alert" hidden>
           Could not load signatures. Please try again later.
@@ -153,7 +204,16 @@
       const signersList = document.getElementById("signers-list");
       const signersEmpty = document.getElementById("signers-empty");
       const signersError = document.getElementById("signers-error");
-      const signaturesEndpoint = "/sign-petition/signatures";
+      const signersMeta = document.getElementById("signers-meta");
+      const signersLoading = document.getElementById("signers-loading");
+      const refreshSignersButton = document.getElementById("refresh-signers");
+      const signaturesEndpointCandidates = Array.from(
+        new Set([
+          new URL("./sign-petition/signatures", window.location.href).toString(),
+          new URL("/sign-petition/signatures", window.location.origin).toString(),
+        ])
+      );
+      const legacySignerNamesKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
       const adminPasswordHash =
         "c1ea006c2833e5bd21a43eb93df8410bcd9737b11fd1d8ca17d1d52bdba16330";
@@ -177,67 +237,120 @@
       };
 
       const getSignerNames = async () => {
-        const response = await fetch(signaturesEndpoint, {
-          method: "GET",
-          credentials: "same-origin",
-          headers: {
-            Accept: "application/json",
-          },
-        });
+        const sourceItemsToNames = (items) => {
+          const seenNames = new Set();
+          const uniqueNames = [];
+          for (const item of items) {
+            const name = toSignerName(item);
+            if (name && !seenNames.has(name)) {
+              seenNames.add(name);
+              uniqueNames.push(name);
+            }
+          }
+          return uniqueNames;
+        };
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("Authentication required to load signatures.");
+        const getLegacySignerNames = () => {
+          if (!window.localStorage) {
+            return [];
           }
-          if (response.status === 403) {
-            throw new Error("You do not have permission to view signatures.");
+          const fallbackData = localStorage.getItem(legacySignerNamesKey);
+          if (!fallbackData) {
+            return [];
           }
-          if (response.status === 404) {
-            throw new Error("Signature endpoint was not found.");
+          try {
+            const parsed = JSON.parse(fallbackData);
+            return Array.isArray(parsed) ? sourceItemsToNames(parsed) : [];
+          } catch (error) {
+            console.warn("Could not parse locally stored signer names:", error);
+            return [];
           }
-          if (response.status >= 500) {
-            throw new Error("The server is unavailable right now.");
+        };
+
+        let lastError = new Error("No signature endpoint was available.");
+        for (const endpoint of signaturesEndpointCandidates) {
+          try {
+            const response = await fetch(endpoint, {
+              method: "GET",
+              credentials: "same-origin",
+              headers: {
+                Accept: "application/json",
+              },
+            });
+
+            if (!response.ok) {
+              if (response.status === 404) {
+                lastError = new Error(`Signature endpoint not found at ${endpoint}.`);
+                continue;
+              }
+              if (response.status >= 500) {
+                lastError = new Error("The server is unavailable right now.");
+                continue;
+              }
+              throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
+            }
+
+            const payload = await response.json();
+            const rawItems = Array.isArray(payload)
+              ? payload
+              : payload?.signatures || payload?.items || payload?.data;
+            const names = Array.isArray(rawItems) ? sourceItemsToNames(rawItems) : [];
+            return {
+              names,
+              source: "api",
+            };
+          } catch (error) {
+            lastError = error;
           }
-          throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
         }
 
-        const payload = await response.json();
-        const rawItems = Array.isArray(payload) ? payload : payload?.signatures;
-        if (!Array.isArray(rawItems)) {
-          return [];
+        const fallbackNames = getLegacySignerNames();
+        if (fallbackNames.length > 0) {
+          return {
+            names: fallbackNames,
+            source: "local-storage",
+          };
         }
 
-        const seenNames = new Set();
-        const uniqueNames = [];
-        for (const item of rawItems) {
-          const name = toSignerName(item);
-          if (name && !seenNames.has(name)) {
-            seenNames.add(name);
-            uniqueNames.push(name);
-          }
-        }
-        return uniqueNames;
+        throw lastError;
       };
 
       const renderSignerNames = async () => {
         signersError.hidden = true;
         signersEmpty.hidden = true;
+        signersLoading.hidden = false;
+        signersMeta.hidden = true;
         signersList.textContent = "";
+        refreshSignersButton.disabled = true;
         let names = [];
+        let source = "api";
 
         try {
-          names = await getSignerNames();
+          const result = await getSignerNames();
+          names = result.names;
+          source = result.source;
         } catch (error) {
           console.error("Could not load signer names:", error);
           signersError.hidden = false;
+          signersLoading.hidden = true;
+          refreshSignersButton.disabled = false;
           return;
         }
 
+        signersLoading.hidden = true;
+        refreshSignersButton.disabled = false;
         if (names.length === 0) {
+          signersMeta.hidden = false;
+          signersMeta.textContent = "0 signatures available.";
           signersEmpty.hidden = false;
           return;
         }
 
+        signersMeta.hidden = false;
+        signersMeta.textContent =
+          source === "api"
+            ? `${names.length} signatures loaded.`
+            : `${names.length} signatures loaded from local backup data.`;
         signersEmpty.hidden = true;
         const fragment = document.createDocumentFragment();
         for (let index = names.length - 1; index >= 0; index -= 1) {
@@ -300,6 +413,10 @@
         }
 
         loginError.hidden = false;
+      });
+
+      refreshSignersButton.addEventListener("click", () => {
+        renderSignerNames();
       });
     </script>
   </body>

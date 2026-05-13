@@ -120,7 +120,10 @@
       const signersEmpty = document.getElementById("signers-empty");
       const signerNamesKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
-      const adminPassword = "1234";
+      const adminPasswordHash =
+        "c1ea006c2833e5bd21a43eb93df8410bcd9737b11fd1d8ca17d1d52bdba16330";
+      const adminPasswordSalt = "energy-forward-australia-admin";
+      const adminPasswordIterations = 600000;
 
       const getSignerNames = () => {
         if (!window.localStorage) {
@@ -155,13 +158,50 @@
         signersList.appendChild(fragment);
       };
 
-      loginForm.addEventListener("submit", (event) => {
+      const hashPassword = async (value) => {
+        if (!window.crypto || !window.crypto.subtle) {
+          throw new Error("Secure password hashing is not available in this browser.");
+        }
+        const encodedPassword = new TextEncoder().encode(value);
+        const encodedSalt = new TextEncoder().encode(adminPasswordSalt);
+        const importedPassword = await window.crypto.subtle.importKey(
+          "raw",
+          encodedPassword,
+          "PBKDF2",
+          false,
+          ["deriveBits"]
+        );
+        const derivedBits = await window.crypto.subtle.deriveBits(
+          {
+            name: "PBKDF2",
+            hash: "SHA-256",
+            salt: encodedSalt,
+            iterations: adminPasswordIterations,
+          },
+          importedPassword,
+          256
+        );
+        return Array.from(new Uint8Array(derivedBits))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+      };
+
+      loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(loginForm);
         const username = String(formData.get("username") || "");
         const password = String(formData.get("password") || "");
+        let passwordHash;
 
-        if (username === adminUsername && password === adminPassword) {
+        try {
+          passwordHash = await hashPassword(password);
+        } catch (error) {
+          console.error("Could not verify admin password:", error);
+          loginError.hidden = false;
+          return;
+        }
+
+        if (username === adminUsername && passwordHash === adminPasswordHash) {
           loginError.hidden = true;
           loginSection.hidden = true;
           adminSection.hidden = false;

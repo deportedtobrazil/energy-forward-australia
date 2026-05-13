@@ -76,7 +76,7 @@
           const stored = localStorage.getItem(signerNamesKey);
           const parsed = stored ? JSON.parse(stored) : [];
           names = Array.isArray(parsed)
-            ? parsed.filter((entry) => typeof entry === "string" && entry.trim())
+            ? parsed.filter((entry) => typeof entry === "string" && entry.trim().length > 0)
             : [];
         } catch (error) {
           console.error("Could not read stored signer names:", error);

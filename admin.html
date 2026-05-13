@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Energy Forward Australia | Admin</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: #eef3f7;
+        color: #0c1c2c;
+      }
+
+      .card {
+        width: min(100%, 38rem);
+        background: #fff;
+        border: 1px solid #d9e3ec;
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 12px 30px rgba(12, 28, 44, 0.12);
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+
+      form {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      label {
+        font-weight: 700;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #bccfdf;
+        border-radius: 10px;
+        font-size: 1rem;
+      }
+
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
+        background: #1f7a2f;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .error {
+        color: #b42318;
+        margin-top: 0.75rem;
+      }
+
+      .signers-list {
+        margin: 0;
+        padding-left: 1.25rem;
+      }
+
+      .muted {
+        color: #35506a;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <section id="login-section" aria-labelledby="admin-login-heading">
+        <h1 id="admin-login-heading">Admin Login</h1>
+        <p class="muted">Enter your admin credentials.</p>
+        <form id="admin-login-form" novalidate>
+          <div>
+            <label for="admin-username">Username</label>
+            <input id="admin-username" name="username" type="text" autocomplete="username" required />
+          </div>
+          <div>
+            <label for="admin-password">Password</label>
+            <input
+              id="admin-password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <button type="submit">Log in</button>
+        </form>
+        <p id="login-error" class="error" role="alert" hidden>Invalid username or password.</p>
+      </section>
+
+      <section id="admin-section" aria-labelledby="admin-signers-heading" hidden>
+        <h1 id="admin-signers-heading">Petition signatures</h1>
+        <p id="signers-empty" class="muted" hidden>No signatures are stored in this browser yet.</p>
+        <ul id="signers-list" class="signers-list" aria-live="polite"></ul>
+      </section>
+    </main>
+
+    <script>
+      const loginForm = document.getElementById("admin-login-form");
+      const loginSection = document.getElementById("login-section");
+      const adminSection = document.getElementById("admin-section");
+      const loginError = document.getElementById("login-error");
+      const signersList = document.getElementById("signers-list");
+      const signersEmpty = document.getElementById("signers-empty");
+      const signerNamesKey = "efaPetitionSignerNames";
+      const adminUsername = "periwenis";
+      const adminPassword = "1234";
+
+      const getSignerNames = () => {
+        if (!window.localStorage) {
+          return [];
+        }
+
+        try {
+          const names = JSON.parse(localStorage.getItem(signerNamesKey) || "[]");
+          return Array.isArray(names) ? names : [];
+        } catch (error) {
+          console.error("Could not parse stored signer names:", error);
+          return [];
+        }
+      };
+
+      const renderSignerNames = () => {
+        const names = getSignerNames();
+        signersList.textContent = "";
+
+        if (names.length === 0) {
+          signersEmpty.hidden = false;
+          return;
+        }
+
+        signersEmpty.hidden = true;
+        const fragment = document.createDocumentFragment();
+        for (let index = names.length - 1; index >= 0; index -= 1) {
+          const listItem = document.createElement("li");
+          listItem.textContent = names[index];
+          fragment.appendChild(listItem);
+        }
+        signersList.appendChild(fragment);
+      };
+
+      loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(loginForm);
+        const username = String(formData.get("username") || "");
+        const password = String(formData.get("password") || "");
+
+        if (username === adminUsername && password === adminPassword) {
+          loginError.hidden = true;
+          loginSection.hidden = true;
+          adminSection.hidden = false;
+          renderSignerNames();
+          return;
+        }
+
+        loginError.hidden = false;
+      });
+    </script>
+  </body>
+</html>

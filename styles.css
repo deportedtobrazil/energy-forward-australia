@@ -40,7 +40,7 @@ body::before {
   transform: scale(1.08);
   will-change: transform, filter;
   z-index: -2;
-  animation: bg-pan 26s ease-in-out infinite alternate;
+  animation: bg-pan 40s ease-in-out infinite alternate;
 }
 
 body::after {
@@ -99,12 +99,20 @@ body::after {
     box-shadow 0.2s ease;
 }
 
-.page-tab:hover,
+.page-tab:hover {
+  border-color: rgba(31, 122, 47, 0.4);
+  color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(9, 31, 14, 0.16);
+}
+
 .page-tab:focus-visible {
   border-color: rgba(31, 122, 47, 0.4);
   color: var(--primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(9, 31, 14, 0.16);
+  outline: 3px solid #2f7d32;
+  outline-offset: 2px;
 }
 
 .page-tab[aria-current="page"] {
@@ -183,11 +191,18 @@ button {
     box-shadow 0.2s ease;
 }
 
-button:hover,
+button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(23, 92, 35, 0.36);
+}
+
 button:focus-visible {
   background: var(--primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 10px 22px rgba(23, 92, 35, 0.36);
+  outline: 3px solid #2f7d32;
+  outline-offset: 2px;
 }
 
 button:disabled {
@@ -229,13 +244,22 @@ button:disabled {
     color 0.2s ease;
 }
 
-.return-link:hover,
+.return-link:hover {
+  color: var(--primary-hover);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(9, 31, 14, 0.16);
+}
+
 .return-link:focus-visible {
   color: var(--primary-hover);
   text-decoration: none;
   background: rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(9, 31, 14, 0.16);
+  outline: 3px solid #2f7d32;
+  outline-offset: 2px;
 }
 
 .donation-form {
@@ -365,6 +389,10 @@ button:disabled {
   .page-tab,
   .return-link {
     flex-basis: 100%;
+  }
+
+  body::before {
+    animation: none;
   }
 }
 

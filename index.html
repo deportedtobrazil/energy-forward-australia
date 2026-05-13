@@ -37,8 +37,11 @@
             type="text"
             autocomplete="name"
             required
-            aria-describedby="petition-form-help"
+            aria-describedby="petition-form-help petition-name-error"
           />
+          <p id="petition-name-error" class="form-help" role="alert" hidden>
+            Please enter your full name before signing.
+          </p>
 
           <button type="submit">Sign the Petition</button>
         </form>
@@ -58,6 +61,7 @@
     <script>
       const petitionForm = document.getElementById("petition-form");
       const petitionError = document.getElementById("petition-error");
+      const petitionNameError = document.getElementById("petition-name-error");
 
       const submissionCountKey = "efaPetitionSubmissions";
       const submissionFailedKey = "efaSubmissionFailed";
@@ -87,15 +91,23 @@
           return;
         }
 
-        const submitButton = petitionForm.querySelector('button[type="submit"]');
-        if (submitButton) {
-          submitButton.disabled = true;
-        }
-
         const formData = new FormData(petitionForm);
         const fullName = String(formData.get("full-name") || "").trim();
 
+        petitionNameError.hidden = true;
         petitionError.hidden = true;
+
+        if (!fullName) {
+          petitionNameError.hidden = false;
+          return;
+        }
+
+        const submitButton = petitionForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton ? submitButton.textContent : null;
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = "Submitting…";
+        }
 
         const endpoints = [
           "https://script.google.com/macros/s/AKfycbyOmHf5-SqWVMalF4YMaZ9kRMBKGmI8qxb66G-aL0ojaliEncTNKmAifM6uDO_hO4mY/exec",
@@ -128,6 +140,7 @@
           petitionError.hidden = false;
           if (submitButton) {
             submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
           }
         }
       });

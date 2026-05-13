@@ -77,8 +77,7 @@
         const formData = new FormData(petitionForm);
 
         if (!window.fetch) {
-          incrementSubmissionCount();
-          petitionForm.submit();
+          petitionError.hidden = false;
           return;
         }
 
@@ -100,7 +99,7 @@
           })
           .catch((error) => {
             console.error("Petition submission request failed:", error);
-            petitionForm.submit();
+            petitionError.hidden = false;
           });
       });
     </script>

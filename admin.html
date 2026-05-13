@@ -250,18 +250,25 @@
             });
 
             if (!response.ok) {
+              const hint = "Endpoint unavailable or not public.";
               if (response.status === 404) {
-                lastError = new Error("Signature endpoint was not found.");
+                lastError = new Error(`Signature endpoint was not found (HTTP 404). ${hint}`);
                 continue;
               }
               if (response.status >= 500) {
-                lastError = new Error("The server is unavailable right now.");
+                lastError = new Error(`The server is unavailable right now (HTTP ${response.status}). ${hint}`);
                 continue;
               }
-              throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
+              throw new Error(`Could not fetch signatures (HTTP ${response.status}). ${hint}`);
             }
 
-            const payload = await response.json();
+            let payload;
+            try {
+              payload = await response.json();
+            } catch (parseError) {
+              console.error("Failed to parse signatures response as JSON:", parseError);
+              throw new Error(`The endpoint returned a non-JSON response (HTTP ${response.status}). Endpoint unavailable or not public.`);
+            }
             const signatures = Array.isArray(payload.signatures) ? payload.signatures : [];
             const seenNames = new Set();
             const uniqueNames = [];
@@ -293,6 +300,7 @@
           names = await getSignerNames();
         } catch (error) {
           console.error("Could not load signer names:", error);
+          signersError.textContent = error.message || "Could not load signatures. Please try again later.";
           signersError.hidden = false;
           signersLoading.hidden = true;
           refreshSignersButton.disabled = false;

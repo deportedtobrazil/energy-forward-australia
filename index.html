@@ -60,49 +60,15 @@
     <script>
       const petitionForm = document.getElementById("petition-form");
       const submissionCountKey = "efaPetitionSubmissions";
-      const signerNamesKey = "efaPetitionSignerNames";
       const submissionFailedKey = "efaSubmissionFailed";
-      const maxStoredSigners = 100;
-      const maxSignerNameLength = 120;
-      const signerNamePattern = /^[\p{L}\p{M}][\p{L}\p{M}\s]*$/u;
-
-      const getSignerNames = () => {
-        if (!window.localStorage) {
-          return [];
-        }
-
-        try {
-          const names = JSON.parse(localStorage.getItem(signerNamesKey) || "[]");
-          return Array.isArray(names) ? names : [];
-        } catch (error) {
-          console.error("Could not parse stored signer names:", error);
-          return [];
-        }
-      };
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(petitionForm);
-        const signerName = String(formData.get("full-name") || "")
-          .replace(/\s+/g, " ")
-          .trim();
 
         if (window.localStorage) {
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
           localStorage.setItem(submissionCountKey, String(previousCount + 1));
-
-          if (
-            signerName &&
-            signerName.length <= maxSignerNameLength &&
-            signerNamePattern.test(signerName)
-          ) {
-            const signerNames = [...getSignerNames()];
-            if (signerNames.length >= maxStoredSigners) {
-              signerNames.shift();
-            }
-            signerNames.push(signerName);
-            localStorage.setItem(signerNamesKey, JSON.stringify(signerNames));
-          }
         }
 
         if (!window.fetch) {

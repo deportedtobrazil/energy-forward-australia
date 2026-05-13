@@ -106,7 +106,10 @@
 
       <section id="admin-section" aria-labelledby="admin-signers-heading" hidden>
         <h1 id="admin-signers-heading">Petition signatures</h1>
-        <p id="signers-empty" class="muted" hidden>No signatures are stored in this browser yet.</p>
+        <p id="signers-empty" class="muted" role="status" hidden>No signatures have been submitted yet.</p>
+        <p id="signers-error" class="error" role="alert" hidden>
+          Could not load signatures. Please try again later.
+        </p>
         <ul id="signers-list" class="signers-list" aria-live="polite"></ul>
       </section>
     </main>
@@ -118,30 +121,91 @@
       const loginError = document.getElementById("login-error");
       const signersList = document.getElementById("signers-list");
       const signersEmpty = document.getElementById("signers-empty");
-      const signerNamesKey = "efaPetitionSignerNames";
+      const signersError = document.getElementById("signers-error");
+      const signaturesEndpoint = "/sign-petition/signatures";
       const adminUsername = "periwenis";
       const adminPasswordHash =
         "c1ea006c2833e5bd21a43eb93df8410bcd9737b11fd1d8ca17d1d52bdba16330";
       const adminPasswordSalt = "energy-forward-australia-admin";
       const adminPasswordIterations = 600000;
 
-      const getSignerNames = () => {
-        if (!window.localStorage) {
-          return [];
+      const toSignerName = (value) => {
+        if (typeof value === "string") {
+          return value.trim();
         }
+        if (!value || typeof value !== "object") {
+          return "";
+        }
+        if (typeof value.fullName === "string") {
+          return value.fullName.trim();
+        }
+        if (typeof value.name === "string") {
+          return value.name.trim();
+        }
+        return "";
+      };
 
+      const getSignerNames = async () => {
         try {
-          const names = JSON.parse(localStorage.getItem(signerNamesKey) || "[]");
-          return Array.isArray(names) ? names : [];
+          const response = await fetch(signaturesEndpoint, {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              throw new Error("Authentication required to load signatures.");
+            }
+            if (response.status === 403) {
+              throw new Error("You do not have permission to view signatures.");
+            }
+            if (response.status === 404) {
+              throw new Error("Signature endpoint was not found.");
+            }
+            if (response.status >= 500) {
+              throw new Error("The server is unavailable right now.");
+            }
+            throw new Error(`Could not fetch signatures (HTTP ${response.status}).`);
+          }
+
+          const payload = await response.json();
+          const rawItems = Array.isArray(payload) ? payload : payload?.signatures;
+          if (!Array.isArray(rawItems)) {
+            return [];
+          }
+
+          const seenNames = new Set();
+          const uniqueNames = [];
+          for (const item of rawItems) {
+            const name = toSignerName(item);
+            if (name && !seenNames.has(name)) {
+              seenNames.add(name);
+              uniqueNames.push(name);
+            }
+          }
+          return uniqueNames;
         } catch (error) {
-          console.error("Could not parse stored signer names:", error);
-          return [];
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`Could not load signatures from ${signaturesEndpoint}: ${message}`);
         }
       };
 
-      const renderSignerNames = () => {
-        const names = getSignerNames();
+      const renderSignerNames = async () => {
+        signersError.hidden = true;
+        signersEmpty.hidden = true;
         signersList.textContent = "";
+        let names = [];
+
+        try {
+          names = await getSignerNames();
+        } catch (error) {
+          console.error("Could not load signer names:", error);
+          signersError.hidden = false;
+          return;
+        }
 
         if (names.length === 0) {
           signersEmpty.hidden = false;

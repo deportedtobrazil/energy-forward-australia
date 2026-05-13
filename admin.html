@@ -172,12 +172,14 @@
         const formData = new FormData(loginForm);
         const username = String(formData.get("username") || "");
         const password = String(formData.get("password") || "");
-        let passwordHash = "";
+        let passwordHash;
 
         try {
           passwordHash = await hashPassword(password);
         } catch (error) {
           console.error("Could not verify admin password:", error);
+          loginError.hidden = false;
+          return;
         }
 
         if (username === adminUsername && passwordHash === adminPasswordHash) {

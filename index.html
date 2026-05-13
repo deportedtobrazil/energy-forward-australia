@@ -21,9 +21,14 @@
           community.
         </p>
 
-        <form class="petition-form" id="petition-form" action="/sign-petition" method="post">
+        <form
+          class="petition-form"
+          id="petition-form"
+          action="https://script.google.com/macros/s/AKfycbyOmHf5-SqWVMalF4YMaZ9kRMBKGmI8qxb66G-aL0ojaliEncTNKmAifM6uDO_hO4mY/exec"
+          method="post"
+        >
           <p id="petition-form-help" class="form-help">
-            Full name is required. Email address is optional.
+            Full name is required.
           </p>
           <label for="full-name">Full name</label>
           <input
@@ -32,15 +37,6 @@
             type="text"
             autocomplete="name"
             required
-            aria-describedby="petition-form-help"
-          />
-
-          <label for="email">Email address (optional)</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autocomplete="email"
             aria-describedby="petition-form-help"
           />
 
@@ -69,11 +65,11 @@
       const submitToEndpoint = async (endpoint, payload) => {
         const response = await fetch(endpoint, {
           method: "POST",
-          credentials: "same-origin",
+          mode: "cors",
+          credentials: "omit",
           cache: "no-store",
           headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
+            "Content-Type": "text/plain;charset=utf-8",
           },
           body: JSON.stringify(payload),
         });
@@ -93,20 +89,18 @@
 
         const formData = new FormData(petitionForm);
         const fullName = String(formData.get("full-name") || "").trim();
-        const email = String(formData.get("email") || "").trim();
 
         petitionError.hidden = true;
 
         const endpoints = [
-          new URL("./sign-petition", window.location.href).toString(),
-          new URL("/sign-petition", window.location.origin).toString(),
+          "https://script.google.com/macros/s/AKfycbyOmHf5-SqWVMalF4YMaZ9kRMBKGmI8qxb66G-aL0ojaliEncTNKmAifM6uDO_hO4mY/exec",
         ];
 
         try {
           let lastError = null;
           for (const endpoint of endpoints) {
             try {
-              await submitToEndpoint(endpoint, { fullName, email });
+              await submitToEndpoint(endpoint, { fullName });
               lastError = null;
               break;
             } catch (error) {

@@ -69,6 +69,7 @@
       const submissionFailedKey = "efaSubmissionFailed";
       const maxStoredSigners = 100;
       const maxSignerNameLength = 120;
+      const signerNamePattern = /^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u;
       const signersList = document.getElementById("signers-list");
       const signersEmpty = document.getElementById("signers-empty");
 
@@ -96,14 +97,11 @@
         }
 
         signersEmpty.hidden = true;
-        names
-          .slice()
-          .reverse()
-          .forEach((name) => {
-            const listItem = document.createElement("li");
-            listItem.textContent = name;
-            signersList.appendChild(listItem);
-          });
+        for (let index = names.length - 1; index >= 0; index -= 1) {
+          const listItem = document.createElement("li");
+          listItem.textContent = names[index];
+          signersList.appendChild(listItem);
+        }
       };
 
       renderSignerNames();
@@ -117,7 +115,11 @@
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
           localStorage.setItem(submissionCountKey, String(previousCount + 1));
 
-          if (signerName && signerName.length <= maxSignerNameLength) {
+          if (
+            signerName &&
+            signerName.length <= maxSignerNameLength &&
+            signerNamePattern.test(signerName)
+          ) {
             const signerNames = getSignerNames();
             if (signerNames.length >= maxStoredSigners) {
               signerNames.shift();

@@ -151,9 +151,9 @@ const handleSubmitSignature = async (request, response) => {
 
   const fullName = cleanName(parsed.fullName || parsed["full-name"]);
   const email = cleanEmail(parsed.email);
-  if (!fullName || !email || !isValidEmail(email)) {
+  if (!fullName || (email && !isValidEmail(email))) {
     sendJson(response, 422, {
-      error: "Full name and a valid email are required.",
+      error: "A valid full name is required.",
     });
     return;
   }

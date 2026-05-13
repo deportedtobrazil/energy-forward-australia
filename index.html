@@ -60,38 +60,11 @@
     <script>
       const petitionForm = document.getElementById("petition-form");
       const submissionCountKey = "efaPetitionSubmissions";
-      const signerNamesKey = "efaPetitionSignerNames";
       const submissionFailedKey = "efaSubmissionFailed";
-
-      const saveSignerName = (nameValue) => {
-        if (!window.localStorage || typeof nameValue !== "string") {
-          return;
-        }
-        const name = nameValue.trim();
-        if (!name) {
-          return;
-        }
-        let names = [];
-        try {
-          const stored = localStorage.getItem(signerNamesKey);
-          const parsed = stored ? JSON.parse(stored) : [];
-          names = Array.isArray(parsed)
-            ? parsed.filter((entry) => typeof entry === "string" && entry.trim().length > 0)
-            : [];
-        } catch (error) {
-          console.error("Could not read stored signer names:", error);
-        }
-        names.push(name);
-        localStorage.setItem(signerNamesKey, JSON.stringify(names));
-      };
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(petitionForm);
-        const fullNameValue = formData.get("full-name");
-        if (typeof fullNameValue === "string") {
-          saveSignerName(fullNameValue);
-        }
 
         if (window.localStorage) {
           const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
@@ -110,12 +83,18 @@
           keepalive: true,
           credentials: "same-origin",
         })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Petition submission failed with status ${response.status}.`);
+            }
+          })
+          .then(() => {
+            window.location.href = "thank-you.html";
+          })
           .catch((error) => {
             console.error("Petition submission request failed:", error);
             sessionStorage.setItem(submissionFailedKey, "1");
-          })
-          .finally(() => {
-            window.location.href = "thank-you.html";
+            petitionForm.submit();
           });
       });
     </script>

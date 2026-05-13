@@ -154,7 +154,6 @@
       const signersEmpty = document.getElementById("signers-empty");
       const signersError = document.getElementById("signers-error");
       const signaturesEndpoint = "/sign-petition/signatures";
-      const signerNamesStorageKey = "efaPetitionSignerNames";
       const adminUsername = "periwenis";
       const adminPasswordHash =
         "c1ea006c2833e5bd21a43eb93df8410bcd9737b11fd1d8ca17d1d52bdba16330";
@@ -178,40 +177,6 @@
       };
 
       const getSignerNames = async () => {
-        const getLocalSignerNames = () => {
-          if (!window.localStorage) {
-            return [];
-          }
-
-          try {
-            const storedNames = localStorage.getItem(signerNamesStorageKey);
-            if (!storedNames) {
-              return [];
-            }
-
-            const parsedNames = JSON.parse(storedNames);
-            if (!Array.isArray(parsedNames)) {
-              return [];
-            }
-
-            const uniqueLocalNames = [];
-            const seenLocalNames = new Set();
-            for (const entry of parsedNames) {
-              const name = toSignerName(entry);
-              if (name && !seenLocalNames.has(name)) {
-                seenLocalNames.add(name);
-                uniqueLocalNames.push(name);
-              }
-            }
-            return uniqueLocalNames;
-          } catch (error) {
-            console.warn("Could not read local signer names:", error);
-            return [];
-          }
-        };
-
-        const localNames = getLocalSignerNames();
-
         try {
           const response = await fetch(signaturesEndpoint, {
             method: "GET",
@@ -240,7 +205,7 @@
           const payload = await response.json();
           const rawItems = Array.isArray(payload) ? payload : payload?.signatures;
           if (!Array.isArray(rawItems)) {
-            return localNames;
+            return [];
           }
 
           const seenNames = new Set();
@@ -252,17 +217,10 @@
               uniqueNames.push(name);
             }
           }
-          return uniqueNames.length > 0 ? uniqueNames : localNames;
+          return uniqueNames;
         } catch (error) {
-          if (localNames.length > 0) {
-            console.warn(
-              `API signature load failed; using ${localNames.length} locally stored signer names.`,
-              error
-            );
-          } else {
-            console.warn("API signature load failed and no local signer names were found.", error);
-          }
-          return localNames;
+          console.warn("API signature load failed.", error);
+          throw error;
         }
       };
 

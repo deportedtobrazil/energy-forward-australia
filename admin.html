@@ -106,7 +106,7 @@
 
       <section id="admin-section" aria-labelledby="admin-signers-heading" hidden>
         <h1 id="admin-signers-heading">Petition signatures</h1>
-        <p id="signers-empty" class="muted" hidden>No signatures have been submitted yet.</p>
+        <p id="signers-empty" class="muted" role="status" hidden>No signatures have been submitted yet.</p>
         <p id="signers-error" class="error" role="alert" hidden>
           Could not load signatures. Please try again later.
         </p>
@@ -156,8 +156,11 @@
           });
 
           if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-              throw new Error("Access denied while loading signatures.");
+            if (response.status === 401) {
+              throw new Error("Authentication required to load signatures.");
+            }
+            if (response.status === 403) {
+              throw new Error("You do not have permission to view signatures.");
             }
             if (response.status === 404) {
               throw new Error("Signature endpoint was not found.");

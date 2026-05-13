@@ -47,6 +47,9 @@
 
           <button type="submit">Sign the Petition</button>
         </form>
+        <p id="petition-error" class="form-help" role="alert" hidden>
+          We couldn't submit your signature right now. Please try again.
+        </p>
 
         <p class="petition-goal">
           Goal: 50,000 signatures in support of clean energy by 2035.
@@ -59,24 +62,29 @@
     </main>
     <script>
       const petitionForm = document.getElementById("petition-form");
+      const petitionError = document.getElementById("petition-error");
       const submissionCountKey = "efaPetitionSubmissions";
       const submissionFailedKey = "efaSubmissionFailed";
+      const incrementSubmissionCount = () => {
+        if (!window.localStorage) {
+          return;
+        }
+        const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
+        localStorage.setItem(submissionCountKey, String(previousCount + 1));
+      };
 
       petitionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(petitionForm);
 
-        if (window.localStorage) {
-          const previousCount = Number(localStorage.getItem(submissionCountKey) || "0");
-          localStorage.setItem(submissionCountKey, String(previousCount + 1));
-        }
-
         if (!window.fetch) {
+          incrementSubmissionCount();
           petitionForm.submit();
           return;
         }
 
         sessionStorage.removeItem(submissionFailedKey);
+        petitionError.hidden = true;
         fetch(petitionForm.action, {
           method: "POST",
           body: formData,
@@ -89,12 +97,13 @@
             }
           })
           .then(() => {
+            incrementSubmissionCount();
             window.location.href = "thank-you.html";
           })
           .catch((error) => {
             console.error("Petition submission request failed:", error);
             sessionStorage.setItem(submissionFailedKey, "1");
-            window.location.href = "thank-you.html";
+            petitionError.hidden = false;
           });
       });
     </script>

@@ -67,6 +67,7 @@
       const submissionCountKey = "efaPetitionSubmissions";
       const signerNamesKey = "efaPetitionSignerNames";
       const submissionFailedKey = "efaSubmissionFailed";
+      const maxStoredSigners = 100;
       const signersList = document.getElementById("signers-list");
       const signersEmpty = document.getElementById("signers-empty");
 
@@ -118,7 +119,10 @@
           if (signerName) {
             const signerNames = getSignerNames();
             signerNames.push(signerName);
-            localStorage.setItem(signerNamesKey, JSON.stringify(signerNames.slice(-100)));
+            localStorage.setItem(
+              signerNamesKey,
+              JSON.stringify(signerNames.slice(-maxStoredSigners))
+            );
           }
         }
 

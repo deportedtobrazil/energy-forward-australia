@@ -69,7 +69,7 @@
       const submissionFailedKey = "efaSubmissionFailed";
       const maxStoredSigners = 100;
       const maxSignerNameLength = 120;
-      const signerNamePattern = /^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u;
+      const signerNamePattern = /^[\p{L}\p{M}][\p{L}\p{M}\s]*$/u;
       const signersList = document.getElementById("signers-list");
       const signersEmpty = document.getElementById("signers-empty");
 
@@ -97,11 +97,13 @@
         }
 
         signersEmpty.hidden = true;
+        const fragment = document.createDocumentFragment();
         for (let index = names.length - 1; index >= 0; index -= 1) {
           const listItem = document.createElement("li");
           listItem.textContent = names[index];
-          signersList.appendChild(listItem);
+          fragment.appendChild(listItem);
         }
+        signersList.appendChild(fragment);
       };
 
       renderSignerNames();

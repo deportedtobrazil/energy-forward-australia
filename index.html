@@ -64,7 +64,27 @@
       const petitionForm = document.getElementById("petition-form");
       const petitionError = document.getElementById("petition-error");
 
-      petitionForm.addEventListener("submit", (event) => {
+      const submissionCountKey = "efaPetitionSubmissions";
+      const submissionFailedKey = "efaSubmissionFailed";
+
+      const submitToEndpoint = async (endpoint, payload) => {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Petition submission failed with status ${response.status}.`);
+        }
+      };
+
+      petitionForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         if (!window.fetch) {
@@ -77,31 +97,38 @@
         const email = String(formData.get("email") || "").trim();
 
         petitionError.hidden = true;
-        fetch(petitionForm.action, {
-          method: "POST",
-          credentials: "same-origin",
-          cache: "no-store",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            fullName,
-            email,
-          }),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`Petition submission failed with status ${response.status}.`);
+
+        const endpoints = [
+          new URL("./sign-petition", window.location.href).toString(),
+          new URL("/sign-petition", window.location.origin).toString(),
+        ];
+
+        try {
+          let lastError = null;
+          for (const endpoint of endpoints) {
+            try {
+              await submitToEndpoint(endpoint, { fullName, email });
+              lastError = null;
+              break;
+            } catch (error) {
+              lastError = error;
             }
-          })
-          .then(() => {
-            window.location.href = "thank-you.html";
-          })
-          .catch((error) => {
-            console.error("Petition submission request failed:", error);
-            petitionError.hidden = false;
-          });
+          }
+
+          if (lastError) {
+            throw lastError;
+          }
+
+          const currentCount = Number(localStorage.getItem(submissionCountKey) || "0");
+          localStorage.setItem(submissionCountKey, String(currentCount + 1));
+          sessionStorage.removeItem(submissionFailedKey);
+
+          window.location.href = "thank-you.html";
+        } catch (error) {
+          console.error("Petition submission request failed:", error);
+          sessionStorage.setItem(submissionFailedKey, "1");
+          petitionError.hidden = false;
+        }
       });
     </script>
   </body>

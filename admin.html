@@ -194,7 +194,9 @@
           </button>
         </div>
         <p id="signers-meta" class="muted signers-meta" hidden></p>
-        <p id="signers-loading" class="muted signers-loading" role="status" hidden>Loading signatures…</p>
+        <p id="signers-loading" class="muted signers-loading" role="status" aria-live="polite" hidden>
+          Loading signatures…
+        </p>
         <p id="signers-empty" class="muted" role="status" hidden>No signatures have been submitted yet.</p>
         <p id="signers-error" class="error" role="alert" hidden>
           Could not load signatures. Please try again later.
@@ -285,6 +287,12 @@
             });
 
             if (!response.ok) {
+              if (response.status === 401) {
+                throw new Error("Authentication is required to view signatures.");
+              }
+              if (response.status === 403) {
+                throw new Error("You do not have permission to view signatures.");
+              }
               if (response.status === 404) {
                 lastError = new Error("Signature endpoint was not found.");
                 continue;
@@ -297,7 +305,7 @@
             }
 
             const payload = await response.json();
-            // Support payload formats: array, or object with signatures/items/data property.
+            // Support payloads from direct API arrays and older wrappers ({signatures}/{items}/{data}).
             const rawItems = Array.isArray(payload)
               ? payload
               : payload?.signatures || payload?.items || payload?.data;

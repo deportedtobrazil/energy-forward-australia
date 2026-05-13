@@ -94,7 +94,7 @@
           .catch((error) => {
             console.error("Petition submission request failed:", error);
             sessionStorage.setItem(submissionFailedKey, "1");
-            petitionForm.submit();
+            window.location.href = "thank-you.html";
           });
       });
     </script>

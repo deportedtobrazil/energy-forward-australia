@@ -92,6 +92,7 @@
       const customAmountInput = document.getElementById("custom-amount");
       const customAmountOption = document.getElementById("donation-custom");
       const amountOptions = donationForm.querySelectorAll('input[name="donation-amount"]');
+      const customAmountFormatPattern = /^(?:[1-9]\d*(?:\.\d{1,2})?|0\.(?:0[1-9]|[1-9]\d?))$/;
 
       const formatAmount = (amount) =>
         new Intl.NumberFormat("en-AU", {
@@ -132,16 +133,8 @@
         event.preventDefault();
         const selectedOption = donationForm.querySelector('input[name="donation-amount"]:checked');
         const customAmountRaw = customAmountInput.value.trim();
-        const customAmountHasValidFormat = /^(?:[1-9]\d*(?:\.\d{1,2})?|0\.(?:0[1-9]|[1-9]\d?))$/.test(
-          customAmountRaw
-        );
-        const customAmountParsed = Number(customAmountRaw);
-        const donationValue =
-          selectedOption && selectedOption.value === "custom"
-            ? customAmountParsed
-            : selectedOption
-              ? Number(selectedOption.value)
-              : NaN;
+        const customAmountHasValidFormat = customAmountFormatPattern.test(customAmountRaw);
+        let donationValue = selectedOption ? Number(selectedOption.value) : NaN;
 
         if (!selectedOption) {
           paymentStatus.className = "status-notice error-notice";
@@ -165,12 +158,14 @@
             return;
           }
 
-          if (!Number.isFinite(donationValue) || donationValue <= 0) {
+          const customAmountParsed = Number(customAmountRaw);
+          if (!Number.isFinite(customAmountParsed) || customAmountParsed <= 0) {
             paymentStatus.className = "status-notice error-notice";
             paymentStatus.textContent = "Custom amount must be greater than 0.";
             customAmountInput.focus();
             return;
           }
+          donationValue = customAmountParsed;
         } else if (!Number.isFinite(donationValue) || donationValue <= 0) {
           paymentStatus.className = "status-notice error-notice";
           paymentStatus.textContent = "Please select a valid preset donation amount.";

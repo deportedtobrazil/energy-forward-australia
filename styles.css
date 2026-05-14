@@ -264,6 +264,11 @@ button:disabled {
 
 .donation-form {
   margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(31, 122, 47, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 .donation-options {
@@ -317,6 +322,10 @@ button:disabled {
   transform: translateY(-1px);
 }
 
+.donation-option--custom span {
+  border-style: dashed;
+}
+
 .donation-option input:checked + span {
   border-color: var(--primary);
   background: rgba(31, 122, 47, 0.14);
@@ -327,6 +336,18 @@ button:disabled {
 .donation-option input:focus-visible + span {
   outline: 3px solid #2f7d32;
   outline-offset: 2px;
+}
+
+.custom-amount-group {
+  margin-top: 0.95rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.custom-amount-group input:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  background: rgba(245, 247, 249, 0.8);
 }
 
 .status-button {
@@ -384,6 +405,11 @@ button:disabled {
   .petition-card {
     border-radius: 20px;
     padding: 1.15rem;
+  }
+
+  .donation-form {
+    padding: 0.85rem;
+    border-radius: 16px;
   }
 
   .page-tab,

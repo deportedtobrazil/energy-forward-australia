@@ -22,6 +22,9 @@
         </p>
 
         <form class="petition-form donation-form" id="donation-form">
+          <p class="form-help">
+            Pick a preset amount or choose Custom to enter your own donation.
+          </p>
           <fieldset class="donation-options">
             <legend>Select an amount</legend>
 
@@ -49,7 +52,28 @@
               <input id="donation-500" name="donation-amount" type="radio" value="500" />
               <span>$500</span>
             </label>
+            <label class="donation-option donation-option--custom" for="donation-custom">
+              <input id="donation-custom" name="donation-amount" type="radio" value="custom" />
+              <span>Custom</span>
+            </label>
           </fieldset>
+          <div class="custom-amount-group">
+            <label for="custom-amount">Custom amount (AUD)</label>
+            <input
+              id="custom-amount"
+              name="custom-amount"
+              type="number"
+              inputmode="decimal"
+              min="1"
+              step="0.01"
+              placeholder="e.g. 37.50"
+              aria-describedby="custom-amount-help"
+              disabled
+            />
+            <p id="custom-amount-help" class="form-help">
+              Enabled when Custom is selected. Enter an amount with up to 2 decimal places.
+            </p>
+          </div>
 
           <button id="pay-button" type="submit" class="status-button">Pay Now</button>
           <p id="payment-status" class="status-notice" role="alert" aria-live="assertive"></p>
@@ -65,20 +89,101 @@
       const donationForm = document.getElementById("donation-form");
       const payButton = document.getElementById("pay-button");
       const paymentStatus = document.getElementById("payment-status");
+      const customAmountInput = document.getElementById("custom-amount");
+      const customAmountOption = document.getElementById("donation-custom");
+      const amountOptions = donationForm.querySelectorAll('input[name="donation-amount"]');
+      const customAmountFormatPattern = /^(?:[1-9]\d*(?:\.\d{1,2})?|0\.(?:0[1-9]|[1-9]\d?))$/;
+
+      const formatAmount = (amount) =>
+        new Intl.NumberFormat("en-AU", {
+          style: "currency",
+          currency: "AUD",
+        }).format(amount);
+
+      const isCustomSelected = () => customAmountOption.checked;
+
+      const syncCustomAmountState = () => {
+        const customSelected = isCustomSelected();
+        customAmountInput.disabled = !customSelected;
+        customAmountInput.required = customSelected;
+        if (!customSelected) {
+          customAmountInput.value = "";
+        }
+      };
+
+      amountOptions.forEach((option) => {
+        option.addEventListener("change", syncCustomAmountState);
+      });
+
+      customAmountInput.addEventListener("focus", () => {
+        customAmountOption.checked = true;
+        syncCustomAmountState();
+      });
+
+      customAmountInput.addEventListener("input", () => {
+        if (customAmountInput.value.trim() !== "") {
+          customAmountOption.checked = true;
+          syncCustomAmountState();
+        }
+      });
+
+      syncCustomAmountState();
 
       donationForm.addEventListener("submit", (event) => {
         event.preventDefault();
+        const selectedOption = donationForm.querySelector('input[name="donation-amount"]:checked');
+        const customAmountRaw = customAmountInput.value.trim();
+        const customAmountHasValidFormat = customAmountFormatPattern.test(customAmountRaw);
+        let donationValue = selectedOption ? Number(selectedOption.value) : NaN;
+
+        if (!selectedOption) {
+          paymentStatus.className = "status-notice error-notice";
+          paymentStatus.textContent = "Please select a donation amount.";
+          return;
+        }
+
+        if (selectedOption.value === "custom") {
+          if (customAmountRaw === "") {
+            paymentStatus.className = "status-notice error-notice";
+            paymentStatus.textContent = "Please enter a custom donation amount.";
+            customAmountInput.focus();
+            return;
+          }
+
+          if (!customAmountHasValidFormat) {
+            paymentStatus.className = "status-notice error-notice";
+            paymentStatus.textContent =
+              "Please use whole dollars or up to 2 decimal places for custom amounts.";
+            customAmountInput.focus();
+            return;
+          }
+
+          const customAmountParsed = Number(customAmountRaw);
+          if (!Number.isFinite(customAmountParsed) || customAmountParsed <= 0) {
+            paymentStatus.className = "status-notice error-notice";
+            paymentStatus.textContent = "Custom amount must be greater than 0.";
+            customAmountInput.focus();
+            return;
+          }
+          donationValue = customAmountParsed;
+        } else if (!Number.isFinite(donationValue) || donationValue <= 0) {
+          paymentStatus.className = "status-notice error-notice";
+          paymentStatus.textContent = "Please select a valid preset donation amount.";
+          return;
+        }
+
+        const formattedDonation = formatAmount(donationValue);
         payButton.disabled = true;
         payButton.textContent = "Loading...";
-        paymentStatus.textContent = "";
         paymentStatus.className = "status-notice";
+        paymentStatus.textContent = `Preparing ${formattedDonation} donation...`;
 
         window.setTimeout(() => {
           payButton.disabled = false;
           payButton.textContent = "Pay Now";
           paymentStatus.className = "status-notice error-notice";
           paymentStatus.textContent =
-            "We apologise, but our payment system is currently unavailable. Please try again later.";
+            `We apologise, but our payment system is currently unavailable for ${formattedDonation}. Please try again later.`;
         }, 5000);
       });
     </script>

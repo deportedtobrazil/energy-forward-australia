@@ -71,8 +71,7 @@
               disabled
             />
             <p id="custom-amount-help" class="form-help">
-              This field is enabled when the Custom option above is selected (up to 2
-              decimal places).
+              Enabled when Custom is selected. Enter an amount with up to 2 decimal places.
             </p>
           </div>
 
@@ -133,7 +132,9 @@
         event.preventDefault();
         const selectedOption = donationForm.querySelector('input[name="donation-amount"]:checked');
         const customAmountRaw = customAmountInput.value.trim();
-        const customAmountHasValidFormat = /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(customAmountRaw);
+        const customAmountHasValidFormat = /^(?:[1-9]\d*(?:\.\d{1,2})?|0\.(?:0[1-9]|[1-9]\d?))$/.test(
+          customAmountRaw
+        );
         const customAmountParsed = Number(customAmountRaw);
         const donationValue =
           selectedOption && selectedOption.value === "custom"
@@ -178,9 +179,9 @@
 
         const formattedDonation = formatAmount(donationValue);
         payButton.disabled = true;
-        payButton.textContent = `Loading ${formattedDonation}...`;
-        paymentStatus.textContent = "";
+        payButton.textContent = "Loading...";
         paymentStatus.className = "status-notice";
+        paymentStatus.textContent = `Preparing ${formattedDonation} donation...`;
 
         window.setTimeout(() => {
           payButton.disabled = false;

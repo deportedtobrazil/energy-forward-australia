@@ -127,16 +127,24 @@
       donationForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const selectedOption = donationForm.querySelector('input[name="donation-amount"]:checked');
+        const customAmountRaw = customAmountInput.value.trim();
+        const customAmountHasValidCents = /^\d+(\.\d{1,2})?$/.test(customAmountRaw);
+        const customAmountParsed = Number(customAmountRaw);
         const donationValue =
           selectedOption && selectedOption.value === "custom"
-            ? Number(customAmountInput.value)
+            ? Math.round(customAmountParsed * 100) / 100
             : selectedOption
               ? Number(selectedOption.value)
               : NaN;
 
-        if (!Number.isFinite(donationValue) || donationValue <= 0) {
+        if (
+          !Number.isFinite(donationValue) ||
+          donationValue <= 0 ||
+          (selectedOption && selectedOption.value === "custom" && !customAmountHasValidCents)
+        ) {
           paymentStatus.className = "status-notice error-notice";
-          paymentStatus.textContent = "Please enter a valid donation amount.";
+          paymentStatus.textContent =
+            "Please enter a valid donation amount (up to 2 decimal places).";
           if (selectedOption && selectedOption.value === "custom") {
             customAmountInput.focus();
           }
